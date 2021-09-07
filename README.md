@@ -1,20 +1,5 @@
 # CQSim Reinforcement Learning Module implementation using OpenAi Gym Environment
 
-### Environment :
-
-Python 3.7.x
-
-### Dependencies : 
-    gym==0.18.0
-    h5py==2.10.0
-    Keras==2.0.6
-    matplotlib==3.4.1
-    numpy==1.19.5
-    pandas==1.2.3
-    tensorflow==1.14.0
-
-### Install dependencies:
-
 ```
 pip install -r requirements.txt
 ```
