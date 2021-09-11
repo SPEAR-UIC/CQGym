@@ -51,7 +51,6 @@ class PG:
         return policy, predict
 
     def act(self, obs):
-        print(obs[0][0][:50])
         return self.predict.predict(obs[0])
 
     def train(self):

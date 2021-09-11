@@ -7,7 +7,6 @@ tf.disable_v2_behavior()
 
 
 def get_action_from_output_vector(output_vector, wait_queue_size, is_training):
-    print(output_vector)
     def softmax(z):
         return np.exp(z) / np.sum(np.exp(z))
     action_p = softmax(output_vector.flatten()[:wait_queue_size])
