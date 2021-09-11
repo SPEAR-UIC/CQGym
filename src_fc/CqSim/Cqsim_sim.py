@@ -294,17 +294,27 @@ class Cqsim_sim(Pause, Thread):
                                    "node": temp_job['reqProc'], "run": temp_job['run'], "score": temp_job['score']})
             i += 1
 
-        # ************ #
-        # reorder_queue function passed as an argument, to be invoked while selecting back-fill jobs.
-        # ************ #
-        backfill_list = self.module['backfill'].backfill(temp_wait_info, {'time': self.currentTime,
-                                                                          'reorder_queue_function': self.reorder_queue})
+        while True:
+            # ************ #
+            # reorder_queue function passed as an argument, to be invoked while selecting back-fill jobs.
+            # ************ #
+            backfill_job = self.module['backfill'].backfill(temp_wait_info, {'time': self.currentTime,
+                                                                             'reorder_queue_function': self.reorder_queue})
+            if backfill_job != -1:
+                print(f'wait list at backfill - {temp_wait}')
+                self.start_job(backfill_job)
+                i = 0
+                for job in temp_wait:
+                    if job == backfill_job:
+                        temp_wait.pop(i)
+                        temp_wait_info.pop(i)
+                        max_num -= 1
+                    i += 1
+                        
+                print(f'wait list after backfill - {temp_wait}')
 
-        if not backfill_list:
-            return 0
-        
-        for job in backfill_list:
-            self.start_job(job)
+            else:
+                break
         return 1
     
     def sys_collect(self):
