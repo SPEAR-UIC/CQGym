@@ -43,7 +43,6 @@ class Backfill:
     
     def main(self):
         #self.debug.debug("* "+self.myInfo+" -- main",5)
-        return self.backfill_RL()
         if (self.mode == 1):
             # EASY backfill
             result = self.backfill_EASY()
@@ -69,10 +68,10 @@ class Backfill:
             backfill_test = self.node_module.pre_avail(self.wait_job[i]['proc'], self.current_para['time'],
                                                        self.current_para['time'] + self.wait_job[i]['run'])
             if (backfill_test == 1):
-                backfill_list.append(self.wait_job[i]['index'])
-                self.node_module.reserve(self.wait_job[i]['proc'], self.wait_job[i]['index'], self.wait_job[i]['run'])
-            i += 1
-        return backfill_list
+                return self.wait_job[i]['index']
+            else:
+                i += 1
+        return -1
         
     def backfill_cons(self):
         #self.debug.debug("* "+self.myInfo+" -- backfill_cons",5)
@@ -86,10 +85,10 @@ class Backfill:
             backfill_test = self.node_module.pre_avail(self.wait_job[i]['proc'],\
                     self.current_para['time'], self.current_para['time']+self.wait_job[i]['run'])
             if (backfill_test == 1):
-                backfill_list.append(self.wait_job[i]['index'])
-            self.node_module.reserve(self.wait_job[i]['proc'], self.wait_job[i]['index'], self.wait_job[i]['run'])
-            i += 1  
-        return backfill_list
+                return self.wait_job[i]['index']
+            else:
+                i += 1  
+        return -1
 
     def backfill_RL(self):
 
