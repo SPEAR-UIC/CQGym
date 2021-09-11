@@ -44,6 +44,7 @@ class Backfill:
     def main(self):
         #self.debug.debug("* "+self.myInfo+" -- main",5)
         result = []
+        self.mode = 1
         if (self.mode == 1):
             # EASY backfill
             result = self.backfill_EASY()

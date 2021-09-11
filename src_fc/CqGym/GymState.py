@@ -53,7 +53,7 @@ class GymState:
             w = int(currentTime - s)
             # award 1: high priority; 0: low priority
             # a = int(wait_job[i]['award'])
-            info = [[n, t], [1, w]]
+            info = [[n, t], [0, w]]
             # info = [[n, t], [a, w]]
             job_info_list.append(info)
         return job_info_list

@@ -5,6 +5,7 @@ import tensorflow.compat.v1 as tf
 import keras.backend as K
 tf.disable_v2_behavior()
 
+np.set_printoptions(threshold=np.inf)
 
 class PG:
     def __init__(self, env, sess, window_size=50,
@@ -23,7 +24,7 @@ class PG:
 
     def build_policy(self):
         obs_shape = self.env.observation_space.shape
-        input = tf.keras.layers.Input(shape=obs_shape)
+        input = tf.keras.layers.Input(shape=obs_shape[1:])
         advantages = tf.keras.layers.Input(shape=[1])
         input_reshape = tf.reshape(input, [-1, obs_shape[2], 1])
         conv1d = tf.keras.layers.Conv1D(
@@ -46,10 +47,12 @@ class PG:
         adam = tf.keras.optimizers.Adam(lr=self.lr)
         policy.compile(loss=custom_loss, optimizer=adam)
         predict = tf.keras.Model(inputs=[input], outputs=[output])
+        print(predict.summary())
         return policy, predict
 
     def act(self, obs):
-        return self.predict.predict(obs)
+        print(obs[0][0][:50])
+        return self.predict.predict(obs[0])
 
     def train(self):
         if len(self.memory) < self.batch_size:
