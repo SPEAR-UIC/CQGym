@@ -10,7 +10,7 @@ def get_action_from_output_vector(output_vector, wait_queue_size, is_training):
     def softmax(z):
         return np.exp(z) / np.sum(np.exp(z))
     action_p = softmax(output_vector.flatten()[:wait_queue_size])
-    if False:
+    if is_training:
         wait_queue_ind = np.random.choice(len(action_p), p=action_p)
     else:
         wait_queue_ind = np.argmax(action_p)
@@ -38,7 +38,7 @@ def model_training(env, weights_file_name=None, is_training=False, output_file_n
         action = get_action_from_output_vector(output_vector, obs.wait_que_size, is_training)
         new_obs, done, reward = env.step(action)
         pg.remember(obs.feature_vector, output_vector, reward, new_obs.feature_vector)
-        if False:
+        if is_training:
             pg.train()
         obs = new_obs
 
