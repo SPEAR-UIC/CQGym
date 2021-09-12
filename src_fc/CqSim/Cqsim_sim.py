@@ -21,6 +21,7 @@ class Cqsim_sim(Pause, Thread):
         
         self.event_seq = []
         self.current_event = None
+        self.reserve_job_id = -1
         #obsolete
         self.job_num = len(self.module['job'].job_info())
         self.currentTime = 0
@@ -58,6 +59,7 @@ class Cqsim_sim(Pause, Thread):
 
         self.event_seq = []
         self.current_event = None
+        self.reserve_job_id = -1
         # obsolete
         self.job_num = len(self.module['job'].job_info())
         self.currentTime = 0
@@ -245,14 +247,21 @@ class Cqsim_sim(Pause, Thread):
             # Communicate with GymEnvironment.
             # ************ #
             print("Wait Queue at StartScan - ", temp_wait)
-            temp_wait = self.reorder_queue(temp_wait)
+            if temp_wait[0] != self.reserve_job_id:
+                temp_wait = self.reorder_queue(temp_wait)
 
             temp_job_id = temp_wait[0]
             temp_job = self.module['job'].job_info(temp_job_id)
             if self.module['node'].is_available(temp_job['reqProc']):
+                # print(f'temp_job_id: {temp_job_id}')
+                if self.reserve_job_id == temp_job_id:
+                    self.reserve_job_id = -1
+
                 self.start_job(temp_job_id)
                 temp_wait.pop(0)
             else:
+                temp_wait = self.module['job'].wait_list()
+                self.reserve_job_id = temp_wait[0]
                 self.backfill(temp_wait)
                 break
 
@@ -294,27 +303,18 @@ class Cqsim_sim(Pause, Thread):
                                    "node": temp_job['reqProc'], "run": temp_job['run'], "score": temp_job['score']})
             i += 1
 
-        while True:
-            # ************ #
-            # reorder_queue function passed as an argument, to be invoked while selecting back-fill jobs.
-            # ************ #
-            backfill_job = self.module['backfill'].backfill(temp_wait_info, {'time': self.currentTime,
-                                                                             'reorder_queue_function': self.reorder_queue})
-            if backfill_job != -1:
-                print(f'wait list at backfill - {temp_wait}')
-                self.start_job(backfill_job)
-                i = 0
-                for job in temp_wait:
-                    if job == backfill_job:
-                        temp_wait.pop(i)
-                        temp_wait_info.pop(i)
-                        max_num -= 1
-                    i += 1
-                        
-                print(f'wait list after backfill - {temp_wait}')
+        # ************ #
+        # reorder_queue function passed as an argument, to be invoked while selecting back-fill jobs.
+        # ************ #
+        backfill_list = self.module['backfill'].backfill(temp_wait_info, {'time': self.currentTime,
+                                                                          'reorder_queue_function': self.reorder_queue})
 
-            else:
-                break
+        if not backfill_list:
+            return 0
+        
+        for job in backfill_list:
+            print('backfill job.')
+            self.start_job(job)
         return 1
     
     def sys_collect(self):
