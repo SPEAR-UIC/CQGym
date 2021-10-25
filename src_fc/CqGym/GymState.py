@@ -31,9 +31,9 @@ class GymState:
         self.wait_que_size = len(self.wait_que)
         self.job_info = job_info_dict
 
-        wait_job = [job_info_dict[ind] for ind in wait_que_indices]
+        self.wait_job = [job_info_dict[ind] for ind in wait_que_indices]
 
-        wait_job_input = self.preprocessing_queued_jobs(wait_job, current_time)
+        wait_job_input = self.preprocessing_queued_jobs(self.wait_job, current_time)
         system_status_input = self.preprocessing_system_status(node_info_list, current_time)
         self.feature_vector = self.make_feature_vector(wait_job_input, system_status_input)
 
