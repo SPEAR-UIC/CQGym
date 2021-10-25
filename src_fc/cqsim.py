@@ -306,12 +306,8 @@ if __name__ == "__main__":
                  help="is training: 0 testing; 1 training")
 
     p.add_option("--rl_alg", dest="rl_alg", type="string",
-                 default="PG",
-                 help="reinforcement learning agent: PG; A2C; PPO")
-
-    p.add_option("--path_weights", dest="path_weights", type="string",
-                 default="Weights/",
-                 help="folder path where Input Weights of the existing Model are placed.")
+                 default="FCFS",
+                 help="scheduling agent: PG; A2C; PPO; FCFS")
 
     p.add_option("--input_weight_file", dest="input_weight_file", type="string",
                  default="",
@@ -444,7 +440,6 @@ if __name__ == "__main__":
     inputPara['read_input_freq'] = opts.read_input_freq
     inputPara['is_training'] = opts.is_training
     inputPara['rl_alg'] = opts.rl_alg
-    inputPara['path_weights'] = opts.path_weights
     inputPara['input_weight_file'] = opts.input_weight_file
     inputPara['output_weight_file'] = opts.output_weight_file
     inputPara['do_render'] = opts.do_render
@@ -489,8 +484,6 @@ if __name__ == "__main__":
     inputPara['path_out'] = cqsim_path.path_data + inputPara['path_out']
     inputPara['path_fmt'] = cqsim_path.path_data + inputPara['path_fmt']
     inputPara['path_debug'] = cqsim_path.path_data + inputPara['path_debug']
-    inputPara['path_weights'] = cqsim_path.path_data + \
-        inputPara['path_weights']
     inputPara['alg_sign'] = alg_sign_check(
         inputPara['alg_sign'], len(inputPara['alg']))
 
