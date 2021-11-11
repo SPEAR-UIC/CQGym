@@ -1,4 +1,4 @@
-# CQSim Reinforcement Learning Module implementation using OpenAi Gym Environment
+# CQSim Reinforcement Learning Module implementation using OpenAI Gym Environment
 
 ```
 pip install -r requirements.txt
