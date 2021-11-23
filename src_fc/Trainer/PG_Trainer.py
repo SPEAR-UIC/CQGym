@@ -18,11 +18,11 @@ def get_action_from_output_vector(output_vector, wait_queue_size, is_training):
 
 
 def model_training(env, weights_file_name=None, is_training=False, output_file_name=None,
-                   window_size=50, learning_rate=0.1, gamma=0.99, batch_size=10, do_render=False):
-
+                   window_size=50, sys_size=0, learning_rate=0.1, gamma=0.99, batch_size=10, do_render=False, layer_size=[]):
     sess = tf.Session()
     tf.keras.backend.set_session(sess)
-    pg = PG(env, sess, window_size, learning_rate, gamma, batch_size)
+    pg = PG(env, sess, window_size, sys_size, learning_rate,
+            gamma, batch_size, layer_size=layer_size)
 
     if weights_file_name:
         pg.load_using_model_name(weights_file_name)
@@ -35,9 +35,11 @@ def model_training(env, weights_file_name=None, is_training=False, output_file_n
         env.render()
         output_vector = pg.act(obs.feature_vector)
 
-        action = get_action_from_output_vector(output_vector, obs.wait_que_size, is_training)
+        action = get_action_from_output_vector(
+            output_vector, obs.wait_que_size, is_training)
         new_obs, done, reward = env.step(action)
-        pg.remember(obs.feature_vector, output_vector, reward, new_obs.feature_vector)
+        pg.remember(obs.feature_vector, output_vector,
+                    reward, new_obs.feature_vector)
         if is_training:
             pg.train()
         obs = new_obs
@@ -46,8 +48,8 @@ def model_training(env, weights_file_name=None, is_training=False, output_file_n
         pg.save_using_model_name(output_file_name)
 
 
-def model_engine(module_list, module_debug, job_cols=0, window_size=0,
-                 is_training=False, weights_file=None, output_file=None, do_render=False):
+def model_engine(module_list, module_debug, job_cols=0, window_size=0, sys_size=0,
+                 is_training=False, weights_file=None, output_file=None, do_render=False, learning_rate=0.1, reward_discount=0.99, batch_size=10, layer_size=[]):
     """
    Execute the CqSim Simulator using OpenAi based Gym Environment with Scheduling implemented using DeepRL Engine.
 
@@ -62,5 +64,5 @@ def model_engine(module_list, module_debug, job_cols=0, window_size=0,
     """
     cqsim_gym = CqsimEnv(module_list, module_debug,
                          job_cols, window_size, do_render)
-    model_training(cqsim_gym, window_size=window_size, is_training=is_training,
-                   weights_file_name=weights_file, output_file_name=output_file)
+    model_training(cqsim_gym, window_size=window_size, sys_size=sys_size, is_training=is_training,
+                   weights_file_name=weights_file, output_file_name=output_file, learning_rate=learning_rate, gamma=reward_discount, batch_size=batch_size, layer_size=layer_size)

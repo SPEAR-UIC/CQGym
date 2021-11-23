@@ -24,7 +24,8 @@ class ActorNet(nn.Module):
             nn.ReLU(),
             nn.Linear(hidden1_size, hidden2_size, bias=False),
             nn.ReLU(),
-            nn.Linear(hidden2_size, num_outputs)
+            nn.Linear(hidden2_size, num_outputs),
+            nn.Softmax(dim=0)
         )
 
     def forward(self, x):
@@ -54,33 +55,40 @@ class CriticNet(nn.Module):
 
 
 class PPO():
-    def __init__(self, env, num_inputs, num_outputs, hidden1_size, hidden2_size, std=0.0, window_size=50,
-                 learning_rate=1e-1, gamma=0.99, batch_size=20):
+    def __init__(self, env, num_inputs, num_outputs, std=0.0, window_size=50,
+                 learning_rate=0.00001, gamma=0.99, batch_size=10, layer_size=[]):
         super(PPO, self).__init__()
-        self.actor_net = ActorNet(
-            num_inputs, hidden1_size, hidden2_size, num_outputs)
-        self.critic_net = CriticNet(
-            num_inputs, hidden1_size, hidden2_size)
+        self.hidden1_size = layer_size[0]
+        self.hidden2_size = layer_size[1]
 
-        self.actor_optimizer = optim.Adam(
-            self.actor_net.parameters(), learning_rate)
-        self.critic_net_optimizer = optim.Adam(
-            self.critic_net.parameters(), learning_rate)
+        self.actor_net = ActorNet(
+            num_inputs, self.hidden1_size, self.hidden2_size, num_outputs)
+        self.critic_net = CriticNet(
+            num_inputs, self.hidden1_size, self.hidden2_size)
 
         self.batch_size = batch_size
         self.gamma = gamma
+        self.lr = learning_rate
+        self.window_size = window_size
         self.rewards = []
         self.states = []
         self.action_probs = []
-        self.ppo_update_time = 10
+        self.ppo_update_time = 1
         self.clip_param = 0.2
         self.max_grad_norm = 0.5
         self.training_step = 0
+        self.rewards_seq = []
+        self.num_inputs = num_inputs
+
+        self.actor_optimizer = optim.Adam(
+            self.actor_net.parameters(), lr=self.lr)
+        self.critic_net_optimizer = optim.Adam(
+            self.critic_net.parameters(), lr=self.lr)
 
     def forward(self, x):
         x = torch.reshape(x, (-1, 2, 1))
-        value = self.critic(x)
-        probs = self.actor(x)
+        value = self.critic_net(x)
+        probs = self.actor_net(x)
         return probs, value
 
     def select_action(self, state):
@@ -94,8 +102,9 @@ class PPO():
         log_prob = dist.log_prob(torch.tensor(action))
         self.rewards.append(torch.FloatTensor(
             [reward]).unsqueeze(-1).to(device))
+        self.rewards_seq.append(reward)
 
-        self.states.append(state)
+        self.states.append(state.numpy())
         self.action_probs.append(action_p)
 
     def train(self):
@@ -108,35 +117,31 @@ class PPO():
             R = r + self.gamma * R
             Gt.insert(0, R)
         Gt = torch.tensor(Gt, dtype=torch.float)
+        self.states = torch.tensor(self.states, dtype=torch.float)
 
         for i in range(self.ppo_update_time):
-            for index in BatchSampler(SubsetRandomSampler(range(len(self.states))), self.batch_size, False):
+            for index in BatchSampler(SubsetRandomSampler(range(len(self.states))), 1, False):
                 Gt_index = Gt[index].view(-1, 1)
-                V = torch.tensor([self.critic_net(self.states[ind])
-                                  for ind in index], dtype=torch.float).view(-1, 1)
-                delta = Gt_index - V
-                advantage = delta.detach()
-                action_prob = torch.softmax(torch.stack([self.actor_net(self.states[ind])
-                                                         for ind in index]), dim=1)
-
-                ratio = (action_prob / old_action_log_prob[index])
+                sampled_states = self.states[index].view(
+                    1, 1, self.num_inputs, 2)
+                V = self.critic_net(sampled_states)
+                advantage = (Gt_index - V).detach()
+                action_prob = self.actor_net(sampled_states)
+                ratio = torch.nan_to_num(
+                    torch.exp(action_prob - old_action_log_prob[index]))
                 surr1 = ratio * advantage
                 surr2 = torch.clamp(ratio, 1 - self.clip_param,
                                     1 + self.clip_param) * advantage
 
-                # update actor network
                 action_loss = -torch.min(surr1, surr2).mean()
                 self.actor_optimizer.zero_grad()
-                action_loss = Variable(action_loss, requires_grad=True)
-                action_loss.backward()
+                action_loss.backward(retain_graph=True)
                 nn.utils.clip_grad_norm_(
                     self.actor_net.parameters(), self.max_grad_norm)
                 self.actor_optimizer.step()
 
-                # update critic network
-                value_loss = F.mse_loss(Gt_index, V)
+                value_loss = -F.mse_loss(Gt_index[0], V)
                 self.critic_net_optimizer.zero_grad()
-                value_loss = Variable(value_loss, requires_grad=True)
                 value_loss.backward()
                 nn.utils.clip_grad_norm_(
                     self.critic_net.parameters(), self.max_grad_norm)

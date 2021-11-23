@@ -115,7 +115,6 @@ def alg_sign_check(alg_sign_t, leng):
         if i < temp_len:
             alg_sign_result.append(int(alg_sign_t[i]))
         else:
-            # alg_sign_result.append(int(alg_sign_t[temp_len-1]))
             alg_sign_result.append(0)
         i += 1
     return alg_sign_result
@@ -241,7 +240,7 @@ if __name__ == "__main__":
                  # default=".log",
                  help="debug log extension type")
     p.add_option("-v", "--debug_lvl", dest="debug_lvl", type="int",
-                 # default=4,
+                 # default=10,
                  help="debug mode")
 
     # 26
@@ -302,12 +301,27 @@ if __name__ == "__main__":
                  help="read input frequency")
 
     p.add_option("--is_training", dest="is_training", type="int",
-                 default="0",
+                 default=0,
                  help="is training: 0 testing; 1 training")
 
     p.add_option("--rl_alg", dest="rl_alg", type="string",
                  default="FCFS",
                  help="scheduling agent: PG; A2C; PPO; FCFS")
+
+    p.add_option("--learning_rate", dest="learning_rate", type="float",
+                 help="learning rate of reinforcement learning")
+
+    p.add_option("--window_size", dest="window_size", type="int",
+                 help="Jobs within the window of the head of queue are considered")
+
+    p.add_option("--reward_discount", dest="reward_discount", type="float",
+                 help="Future reward discount in reinforcement learning")
+
+    p.add_option("--layer_size", dest="layer_size", type="string",
+                 help="Layer size (e.g., 4000,1000)")
+
+    p.add_option("--batch_size", dest="batch_size", type="int",
+                 help="Training batch size for reinforcement learning")
 
     p.add_option("--input_weight_file", dest="input_weight_file", type="string",
                  default="",
@@ -389,12 +403,6 @@ if __name__ == "__main__":
         opts.log_freq = 1
     if not opts.read_input_freq:
         opts.read_input_freq = 1000
-    '''
-    if not opts.job_save:
-        print "Error: Please specify at least one node structure!"
-        p.print_help()
-        sys.exit()
-    '''
 
     inputPara['job_trace'] = opts.job_trace
     inputPara['node_struc'] = opts.node_struc
@@ -420,7 +428,7 @@ if __name__ == "__main__":
     inputPara['ext_si'] = opts.ext_si
     inputPara['ext_ai'] = opts.ext_ai
     inputPara['ext_debug'] = opts.ext_debug
-    inputPara['debug_lvl'] = opts.alg
+    inputPara['debug_lvl'] = opts.debug_lvl
     inputPara['alg'] = opts.alg
     inputPara['alg_sign'] = opts.alg_sign
     inputPara['backfill'] = opts.backfill
@@ -440,6 +448,11 @@ if __name__ == "__main__":
     inputPara['read_input_freq'] = opts.read_input_freq
     inputPara['is_training'] = opts.is_training
     inputPara['rl_alg'] = opts.rl_alg
+    inputPara['learning_rate'] = opts.learning_rate
+    inputPara['window_size'] = opts.window_size
+    inputPara['reward_discount'] = opts.reward_discount
+    inputPara['batch_size'] = opts.batch_size
+    inputPara['layer_size'] = opts.layer_size
     inputPara['input_weight_file'] = opts.input_weight_file
     inputPara['output_weight_file'] = opts.output_weight_file
     inputPara['do_render'] = opts.do_render
@@ -449,7 +462,7 @@ if __name__ == "__main__":
             inputPara[item] = str(inputPara_name[item])
 
     for item in inputPara_sys:
-        if (item not in inputPara) or (not inputPara[item]):
+        if (item not in inputPara) or (inputPara[item] is None):
             if inputPara_sys[item]:
                 if item == "cluster_fraction" or item == "start":
                     inputPara[item] = float(inputPara_sys[item])
@@ -463,7 +476,9 @@ if __name__ == "__main__":
                         item == "ad_bf" or \
                         item == "ad_win" or \
                         item == "ad_alg" or \
-                        item == "monitor":
+                        item == "monitor" or \
+                        item == "window_size" or \
+                        item == "batch_size":
                     inputPara[item] = int(inputPara_sys[item])
                 elif item == "alg" or \
                         item == "alg_sign" or \
@@ -474,7 +489,10 @@ if __name__ == "__main__":
                         item == "ad_alg_para":
                     inputPara[item] = get_list(inputPara_sys[item], r'([^,]+)')
                 elif item == "is_training":
-                    inputPara[item] = str(inputPara[item])
+                    inputPara[item] = str(inputPara_sys[item])
+                elif item == "learning_rate" or \
+                        item == "reward_discount":
+                    inputPara[item] = float(inputPara_sys[item])
                 else:
                     inputPara[item] = str(inputPara_sys[item])
             else:
@@ -494,4 +512,7 @@ if __name__ == "__main__":
     if inputPara['output_weight_file']:
         inputPara['output_weight_file'] = inputPara['path_fmt'] + \
             inputPara['output_weight_file']
+
+    inputPara['layer_size'] = [int(size)
+                               for size in inputPara['layer_size'].split(',')]
     cqsim_main.cqsim_main(inputPara)

@@ -125,24 +125,28 @@ def cqsim_main(para_list):
     module_list = {'job': module_job_trace, 'node': module_node_struc, 'backfill': module_backfill,
                    'win': module_win, 'alg': module_alg, 'info': module_info_collect, 'output': module_output_log}
     job_cols = int(para_list['job_info_size']) // int(para_list['input_dim'])
-    window_size = int(para_list['win'])
+    batch_size = int(para_list['batch_size'])
+    window_size = int(para_list['window_size'])
+    learning_rate = float(para_list['learning_rate'])
+    reward_discount = float(para_list['reward_discount'])
     is_training = True if (
         para_list['is_training'] == '1' or para_list['is_training'] == 1) else False
     input_weight_file = para_list['input_weight_file']
     output_weight_file = para_list['output_weight_file']
     do_render = True if para_list['do_render'] == '1' else False
+    layer_size = para_list['layer_size']
 
     # Invoking the CqGym and PG model. This function manages the parameters required for initialization the
     # Gym Environment along with CqSim simulator and also for loading RL model - PG.
     if para_list['rl_alg'] == 'PPO':
         ppo_trainer.model_engine(module_list, module_debug, job_cols, window_size, module_node_struc.tot,
-                                 is_training, input_weight_file, output_weight_file, do_render)
+                                 is_training, input_weight_file, output_weight_file, do_render, learning_rate, reward_discount, batch_size, layer_size)
     elif para_list['rl_alg'] == 'A2C':
         a2c_trainer.model_engine(module_list, module_debug, job_cols, window_size, module_node_struc.tot,
-                                 is_training, input_weight_file, output_weight_file, do_render)
+                                 is_training, input_weight_file, output_weight_file, do_render, learning_rate, reward_discount, batch_size, layer_size)
     elif para_list['rl_alg'] == 'PG':
-        pg_trainer.model_engine(module_list, module_debug, job_cols, window_size,
-                                is_training, input_weight_file, output_weight_file, do_render)
+        pg_trainer.model_engine(module_list, module_debug, job_cols, window_size, module_node_struc.tot,
+                                is_training, input_weight_file, output_weight_file, do_render, learning_rate, reward_discount, batch_size, layer_size)
     else:  # FCFS
         print(".................... FCFS")
         FCFS.model_engine(module_list, module_debug,

@@ -33,12 +33,15 @@ class GymState:
 
         self.wait_job = [job_info_dict[ind] for ind in wait_que_indices]
 
-        wait_job_input = self.preprocessing_queued_jobs(self.wait_job, current_time)
-        system_status_input = self.preprocessing_system_status(node_info_list, current_time)
-        self.feature_vector = self.make_feature_vector(wait_job_input, system_status_input)
+        wait_job_input = self.preprocessing_queued_jobs(
+            self.wait_job, current_time)
+        system_status_input = self.preprocessing_system_status(
+            node_info_list, current_time)
+        self.feature_vector = self.make_feature_vector(
+            wait_job_input, system_status_input)
 
         def vector_reshape(vec):
-            return vec.reshape(tuple([1])+vec.shape)
+            return vec.reshape(tuple([1]) + vec.shape)
         self.feature_vector = vector_reshape(self.feature_vector)
 
         self.total_nodes = len(node_info_list)
@@ -69,7 +72,7 @@ class GymState:
                 info.append(0)
             else:
                 info.append(0)
-                info.append(node['end']-currentTime)
+                info.append(node['end'] - currentTime)
                 # Next available node time.
 
             node_info_list.append(info)
@@ -79,50 +82,63 @@ class GymState:
         # Remove hard coded part !
         job_cols = self._job_cols_
         window_size = self._window_size_
-        input_dim = [len(system_status)+window_size*job_cols, len(system_status[0])]
+        input_dim = [len(system_status) + window_size *
+                     job_cols, len(system_status[0])]
 
         fv = np.zeros((1, input_dim[0], input_dim[1]))
         i = 0
         for idx, job in enumerate(jobs):
-            fv[0, idx*job_cols:(idx+1)*job_cols, :] = job
+            fv[0, idx * job_cols:(idx + 1) * job_cols, :] = job
             i += 1
             if i == window_size:
                 break
-        fv[0, job_cols*window_size:, :] = system_status
+        fv[0, job_cols * window_size:, :] = system_status
         return fv
 
     def get_max_wait_time_in_queue(self):
-
+        job_cnt = 0
         max_wait_time_in_que = 0
+        max_job_size_in_que = 0
+        total_wait_time = 0
+        total_wait_core_seconds = 0
         for job_id in self.job_info:
+            job_cnt += 1
             job = self.job_info[job_id]
-            max_wait_time_in_que = max(max_wait_time_in_que, self.current_time - job['submit'])
-        return max_wait_time_in_que
+            if job_cnt <= self._window_size_:
+                max_wait_time_in_que = max(
+                    max_wait_time_in_que, self.current_time - job['submit'])
+                max_job_size_in_que = max(max_job_size_in_que, job['reqProc'])
+            total_wait_time += job['reqTime']
+            total_wait_core_seconds += job['reqTime'] * job['reqProc']
+        return max_wait_time_in_que, max_job_size_in_que, total_wait_time, total_wait_core_seconds, job_cnt
 
     def get_reward(self, selected_job):
 
-        max_wait_time_in_que = self.get_max_wait_time_in_queue()
+        max_wait_time_in_que, max_job_size_in_que, total_wait_time, total_wait_core_seconds, total_wait_size = self.get_max_wait_time_in_queue()
 
         tmp_reward = 0
-        running = self.total_nodes-self.idle_nodes
+        running = self.total_nodes - self.idle_nodes
         selected_job_info = self.job_info[selected_job]
         selected_job_requested_nodes = selected_job_info['reqProc']
-        selected_job_wait_time = self.current_time-selected_job_info['submit']
+        selected_job_wait_time = self.current_time - \
+            selected_job_info['submit']
 
-        selected_job_priority = selected_job_requested_nodes/self.total_nodes
-        w1, w2, w3 = 1/3, 1/3, 1/3
+        selected_job_priority = selected_job_requested_nodes / self.total_nodes
+        w1, w2, w3 = 1 / 3, 1 / 3, 1 / 3
 
         if self.idle_nodes < selected_job_requested_nodes:
-            tmp_reward += running/self.total_nodes*w1
+            tmp_reward += running / self.total_nodes * w1
         else:
-            tmp_reward += (selected_job_requested_nodes+running)/self.total_nodes*w1
+            tmp_reward += (selected_job_requested_nodes +
+                           running) / self.total_nodes * w1
 
         if max_wait_time_in_que >= 21600:
-            tmp_reward += selected_job_wait_time/max_wait_time_in_que*w2
+            tmp_reward += selected_job_wait_time / max_wait_time_in_que * w2
         else:
-            tmp_reward += selected_job_wait_time/21600*w2
+            tmp_reward += selected_job_wait_time / 21600 * w2
 
-        tmp_reward += selected_job_priority*w3
+        tmp_reward += selected_job_priority * w3
+
+        tmp_reward = selected_job_requested_nodes / max_job_size_in_que
 
         return tmp_reward
-

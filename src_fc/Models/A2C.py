@@ -13,34 +13,38 @@ from torch.distributions import Categorical
 
 
 class A2C(nn.Module):
-    def __init__(self, env, num_inputs, num_outputs, hidden1_size, hidden2_size, std=0.0, window_size=50,
-                 learning_rate=1e-1, gamma=0.99, batch_size=20):
+    def __init__(self, env, num_inputs, num_outputs, std=0.0, window_size=50,
+                 learning_rate=1e-1, gamma=0.99, batch_size=20, layer_size=[]):
         super(A2C, self).__init__()
+        self.hidden1_size = layer_size[0]
+        self.hidden2_size = layer_size[1]
         self.critic = nn.Sequential(
             nn.Conv1d(2, 1, 1),
             nn.Flatten(start_dim=0),
-            nn.Linear(num_inputs, hidden1_size, bias=False),
+            nn.Linear(num_inputs, self.hidden1_size, bias=False),
             nn.ReLU(),
-            nn.Linear(hidden1_size, hidden2_size, bias=False),
+            nn.Linear(self.hidden1_size, self.hidden2_size, bias=False),
             nn.ReLU(),
-            nn.Linear(hidden2_size, 1)
+            nn.Linear(self.hidden2_size, 1)
         )
 
         self.actor = nn.Sequential(
             nn.Conv1d(2, 1, 1),
             nn.Flatten(start_dim=0),
-            nn.Linear(num_inputs, hidden1_size, bias=False),
+            nn.Linear(num_inputs, self.hidden1_size, bias=False),
             nn.ReLU(),
-            nn.Linear(hidden1_size, hidden2_size, bias=False),
+            nn.Linear(self.hidden1_size, self.hidden2_size, bias=False),
             nn.ReLU(),
-            nn.Linear(hidden2_size, num_outputs)
+            nn.Linear(self.hidden2_size, num_outputs)
         )
         self.batch_size = batch_size
         self.gamma = gamma
+        self.lr = learning_rate
+        self.window_size = window_size
         self.log_probs = []
         self.values = []
         self.rewards = []
-        self.masks = []
+        self.rewards_seq = []
         self.entropy = 0
 
     def forward(self, x):
@@ -58,7 +62,7 @@ class A2C(nn.Module):
         self.values.append(value)
         self.rewards.append(torch.FloatTensor(
             [reward]).unsqueeze(-1).to(device))
-        self.masks.append(torch.FloatTensor(1 - done).unsqueeze(1).to(device))
+        self.rewards_seq.append(reward)
 
     def train(self, next_value, optimizer):
         if len(self.values) < self.batch_size:
@@ -84,14 +88,13 @@ class A2C(nn.Module):
         self.log_probs = []
         self.values = []
         self.rewards = []
-        self.masks = []
         self.entropy = 0
 
     def compute_returns(self, next_value):
         R = next_value
         returns = []
         for step in reversed(range(len(self.rewards))):
-            R = self.rewards[step] + self.gamma * R * self.masks[step]
+            R = self.rewards[step][0] + self.gamma * R
             returns.insert(0, R)
         return returns
 

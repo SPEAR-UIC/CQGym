@@ -7,19 +7,24 @@ tf.disable_v2_behavior()
 
 np.set_printoptions(threshold=np.inf)
 
+
 class PG:
-    def __init__(self, env, sess, window_size=50,
-                 learning_rate=1e-1, gamma=0.99, batch_size=20):
+    def __init__(self, env, sess, window_size=50, sys_size=0,
+                 learning_rate=1e-1, gamma=0.99, batch_size=20, layer_size=[]):
 
         self.env = env
         self.sess = sess
 
+        self.sys_size = sys_size
         self.window_size = window_size
         self.batch_size = batch_size
         self.lr = learning_rate
         self.gamma = gamma
-        self.memory = deque(maxlen=20)
-
+        self.num_input = self.sys_size + 2 * self.window_size
+        self.memory = deque(maxlen=self.batch_size)
+        self.hidden1_size = layer_size[0]
+        self.hidden2_size = layer_size[1]
+        self.rewards_seq = []
         self.policy, self.predict = self.build_policy()
 
     def build_policy(self):
@@ -30,10 +35,10 @@ class PG:
         conv1d = tf.keras.layers.Conv1D(
             1, obs_shape[2], input_shape=(obs_shape[2], 1))(input_reshape)
         conv1d_reshape = tf.reshape(conv1d, [-1, obs_shape[1]])
-        hidden_layer1 = tf.keras.layers.Dense(4000, 'relu', input_shape=(
+        hidden_layer1 = tf.keras.layers.Dense(self.hidden1_size, 'relu', input_shape=(
             obs_shape[1],), use_bias=False)(conv1d_reshape)
         hidden_layer2 = tf.keras.layers.Dense(
-            1000, 'relu', input_shape=(4000,), use_bias=False)(hidden_layer1)
+            self.hidden2_size, 'relu', input_shape=(self.hidden1_size,), use_bias=False)(hidden_layer1)
         output = tf.keras.layers.Dense(
             self.window_size, activation='softmax')(hidden_layer2)
 
@@ -57,7 +62,7 @@ class PG:
         if len(self.memory) < self.batch_size:
             return
 
-        states = np.zeros((self.batch_size, *self.env.observation_space.shape))
+        states = np.zeros((self.batch_size, self.num_input, 2))
         actions = np.zeros([self.batch_size, self.window_size])
         G = np.zeros(self.batch_size)
 
@@ -72,15 +77,12 @@ class PG:
 
             states[i, :], actions[i, :], _, _ = self.memory[i]
 
-        mean = np.mean(G)
-        std = np.std(G) if np.std(G) > 0 else 1
-        G = (G - mean) / std
-
         self.policy.train_on_batch([states, G], actions)
         self.memory = deque(maxlen=self.batch_size)
 
     def remember(self, obs, action, reward, new_obs):
         self.memory.append([obs, action, reward, new_obs])
+        self.rewards_seq.append(reward)
 
     def save(self, policy_fp, predict_fp):
         self.policy.save_weights(policy_fp)
