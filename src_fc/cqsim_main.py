@@ -15,6 +15,7 @@ import Extend.SWF.Node_struc_SWF as node_struc_ext
 
 import Trainer.PG_Trainer as pg_trainer
 import Trainer.A2C_Trainer as a2c_trainer
+import Trainer.DQL_Trainer as dql_trainer
 import Trainer.PPO_Trainer as ppo_trainer
 import Trainer.FCFS as FCFS
 
@@ -143,6 +144,9 @@ def cqsim_main(para_list):
                                  is_training, input_weight_file, output_weight_file, do_render, learning_rate, reward_discount, batch_size, layer_size)
     elif para_list['rl_alg'] == 'A2C':
         a2c_trainer.model_engine(module_list, module_debug, job_cols, window_size, module_node_struc.tot,
+                                 is_training, input_weight_file, output_weight_file, do_render, learning_rate, reward_discount, batch_size, layer_size)
+    elif para_list['rl_alg'] == 'DQL':
+        dql_trainer.model_engine(module_list, module_debug, job_cols, window_size, module_node_struc.tot,
                                  is_training, input_weight_file, output_weight_file, do_render, learning_rate, reward_discount, batch_size, layer_size)
     elif para_list['rl_alg'] == 'PG':
         pg_trainer.model_engine(module_list, module_debug, job_cols, window_size, module_node_struc.tot,
