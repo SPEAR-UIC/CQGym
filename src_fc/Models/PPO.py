@@ -56,7 +56,7 @@ class CriticNet(nn.Module):
 
 class PPO():
     def __init__(self, env, num_inputs, num_outputs, std=0.0, window_size=50,
-                 learning_rate=0.00001, gamma=0.99, batch_size=10, layer_size=[]):
+                 learning_rate=1e-2, gamma=0.99, batch_size=10, layer_size=[]):
         super(PPO, self).__init__()
         self.hidden1_size = layer_size[0]
         self.hidden2_size = layer_size[1]

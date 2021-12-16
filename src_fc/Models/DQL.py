@@ -71,7 +71,6 @@ class DQL:
         std = np.std(G) if np.std(G) > 0 else 1
         G = (G - mean) / std
 
-        print(states.shape, G.shape, actions.shape)
         self.policy.train_on_batch([states, G], actions)
         self.memory = deque(maxlen=self.batch_size)
 

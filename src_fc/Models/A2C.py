@@ -14,7 +14,7 @@ from torch.distributions import Categorical
 
 class A2C(nn.Module):
     def __init__(self, env, num_inputs, num_outputs, std=0.0, window_size=50,
-                 learning_rate=1e-1, gamma=0.99, batch_size=20, layer_size=[]):
+                 learning_rate=1e-2, gamma=0.99, batch_size=20, layer_size=[]):
         super(A2C, self).__init__()
         self.hidden1_size = layer_size[0]
         self.hidden2_size = layer_size[1]

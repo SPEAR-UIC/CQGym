@@ -10,7 +10,7 @@ np.set_printoptions(threshold=np.inf)
 
 class PG:
     def __init__(self, env, sess, window_size=50, sys_size=0,
-                 learning_rate=1e-1, gamma=0.99, batch_size=20, layer_size=[]):
+                 learning_rate=1e-2, gamma=0.99, batch_size=20, layer_size=[]):
 
         self.env = env
         self.sess = sess
