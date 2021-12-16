@@ -206,21 +206,6 @@ class Cqsim_sim(Pause, Thread):
         self.insert_event(1, self.currentTime+self.module['job'].job_info(job_index)['run'], 1, [2, job_index])
         return
 
-    # Marked for deletion
-    # def score_calculate(self):
-    #
-    #     temp_wait_list = self.module['job'].wait_list()
-    #     wait_num = len(temp_wait_list)
-    #     temp_wait = []
-    #     i = 0
-    #     while i < wait_num:
-    #         temp_job = self.module['job'].job_info(temp_wait_list[i])
-    #         temp_wait.append(temp_job)
-    #         i += 1
-    #     score_list = self.module['alg'].get_score(temp_wait, self.currentTime)
-    #     self.module['job'].refresh_score(score_list)
-    #     return
-
     def reorder_queue(self, wait_que):
         """
         This(and only this) function manages thread synchronization and communication with the GymEnvironment.
@@ -343,9 +328,6 @@ class Cqsim_sim(Pause, Thread):
 
     def print_sys_info(self, sys_info):
         self.module['output'].print_sys_info(sys_info)
-    
-    def print_adapt(self, adapt_info):
-        self.module['output'].print_adapt(adapt_info)
     
     def print_result(self):
         self.module['output'].print_sys_info()

@@ -10,7 +10,7 @@ import cqsim_main
 
 def datetime_strptime(value, format):
     """Parse a datetime like datetime.strptime in Python >= 2.5"""
-    return datetime(*time.strptime(value, format)[0:6])
+    return datetime.datetime(*time.strptime(value, format)[0:6])
 
 
 class Option(optparse.Option):
@@ -236,6 +236,9 @@ if __name__ == "__main__":
     p.add_option("--ext_ai", dest="ext_ai", type="string",
                  # default=".adp",
                  help="adapt information log extension type")
+    p.add_option("--ext_ri", dest="ext_ri", type="string",
+                 # default=".rwd",
+                 help="reward information log extension type")
     p.add_option("--ext_d", dest="ext_debug", type="string",
                  # default=".log",
                  help="debug log extension type")
@@ -404,9 +407,10 @@ if __name__ == "__main__":
     if not opts.read_input_freq:
         opts.read_input_freq = 1000
 
+    now = datetime.now()
     inputPara['job_trace'] = opts.job_trace
     inputPara['node_struc'] = opts.node_struc
-    inputPara['job_save'] = opts.job_save
+    inputPara['job_save'] = opts.job_save + now.strftime('%H_%M_%S')
     inputPara['node_save'] = opts.node_save
     inputPara['cluster_fraction'] = opts.cluster_fraction
     inputPara['start'] = opts.start
@@ -427,6 +431,7 @@ if __name__ == "__main__":
     inputPara['ext_jr'] = opts.ext_jr
     inputPara['ext_si'] = opts.ext_si
     inputPara['ext_ai'] = opts.ext_ai
+    inputPara['ext_ri'] = opts.ext_ri
     inputPara['ext_debug'] = opts.ext_debug
     inputPara['debug_lvl'] = opts.debug_lvl
     inputPara['alg'] = opts.alg
@@ -497,7 +502,7 @@ if __name__ == "__main__":
                     inputPara[item] = str(inputPara_sys[item])
             else:
                 inputPara[item] = None
-
+    
     inputPara['path_in'] = cqsim_path.path_data + inputPara['path_in']
     inputPara['path_out'] = cqsim_path.path_data + inputPara['path_out']
     inputPara['path_fmt'] = cqsim_path.path_data + inputPara['path_fmt']

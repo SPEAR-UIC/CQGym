@@ -10,4 +10,5 @@ path_debug=Debug/
 ext_jr=.rst
 ext_si=.ult
 ext_ai=.adp
+ext_ri=.rwd
 ext_debug=.log

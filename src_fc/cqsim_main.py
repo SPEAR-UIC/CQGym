@@ -43,8 +43,14 @@ def cqsim_main(para_list):
         para_list['output'] + para_list['ext_ai']
     output_result = para_list['path_out'] + \
         para_list['output'] + para_list['ext_jr']
+    output_reward = para_list['path_out'] + \
+        para_list['output'] + para_list['ext_ri']
     output_fn = {'sys': output_sys,
-                 'adapt': output_adapt, 'result': output_result}
+                 'adapt': output_adapt,
+                 'result': output_result,
+                 'reward': output_reward,
+                }
+
     log_freq_int = para_list['log_freq']
     read_input_freq = para_list['read_input_freq']
 
@@ -139,19 +145,22 @@ def cqsim_main(para_list):
 
     # Invoking the CqGym and PG model. This function manages the parameters required for initialization the
     # Gym Environment along with CqSim simulator and also for loading RL model - PG.
+    reward_seq = []
     if para_list['rl_alg'] == 'PPO':
-        ppo_trainer.model_engine(module_list, module_debug, job_cols, window_size, module_node_struc.tot,
-                                 is_training, input_weight_file, output_weight_file, do_render, learning_rate, reward_discount, batch_size, layer_size)
+        reward_seq = ppo_trainer.model_engine(module_list, module_debug, job_cols, window_size, module_node_struc.tot,
+                        is_training, input_weight_file, output_weight_file, do_render, learning_rate, reward_discount, batch_size, layer_size)
     elif para_list['rl_alg'] == 'A2C':
-        a2c_trainer.model_engine(module_list, module_debug, job_cols, window_size, module_node_struc.tot,
-                                 is_training, input_weight_file, output_weight_file, do_render, learning_rate, reward_discount, batch_size, layer_size)
+        reward_seq = a2c_trainer.model_engine(module_list, module_debug, job_cols, window_size, module_node_struc.tot,
+                        is_training, input_weight_file, output_weight_file, do_render, learning_rate, reward_discount, batch_size, layer_size)
     elif para_list['rl_alg'] == 'DQL':
-        dql_trainer.model_engine(module_list, module_debug, job_cols, window_size, module_node_struc.tot,
+        reward_seq = dql_trainer.model_engine(module_list, module_debug, job_cols, window_size, module_node_struc.tot,
                                  is_training, input_weight_file, output_weight_file, do_render, learning_rate, reward_discount, batch_size, layer_size)
     elif para_list['rl_alg'] == 'PG':
-        pg_trainer.model_engine(module_list, module_debug, job_cols, window_size, module_node_struc.tot,
+        reward_seq = pg.model_engine(module_list, module_debug, job_cols, window_size, module_node_struc.tot,
                                 is_training, input_weight_file, output_weight_file, do_render, learning_rate, reward_discount, batch_size, layer_size)
     else:  # FCFS
         print(".................... FCFS")
         FCFS.model_engine(module_list, module_debug,
                           job_cols, window_size, do_render)
+    module_output_log.print_reward()
+     
