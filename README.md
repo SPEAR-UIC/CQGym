@@ -47,10 +47,13 @@ python cqsim.py -j validate.swf -n validate.swf -R 5000 --is_training 0 --input_
 
 ### Learning parameters
 Model hyperparameters can be modified using these options.
-* **--learning_rate:** [float]. Defaults to 0.0001.
-* **--batch_size:** [int]. The number of state-action-value sequences recorded by the agent before performing optimization. Defaults to 20.
+* **--learning_rate:** [float]. Defaults to 0.000021.
+* **--batch_size:** [int]. The number of state-action-value sequences recorded by the agent before performing optimization. Defaults to 70.
 * **--window_size:** [int]. Input size. How many jobs from the queue considered by the agent for scheduling. Defaults to 50.
-* **--reward_discount:** [float]. Between [0, 1]. Designates the importance of future rewards in future states. Corresponds to gamma in the Bellman Optimality equation.
+* **--reward_discount:** [float]. Between [0, 1]. Designates the importance of future rewards in future states. Corresponds to gamma in the Bellman Optimality equation. Defaults to 0.95
+
+### Config/
+Additionally, all default values can be found and modified in src_fc/Config/.
 
 ## Data Collection
 Output from training and testing episodes goes to /data/Results.
