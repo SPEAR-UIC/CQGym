@@ -56,7 +56,7 @@ Model hyperparameters can be modified using these options.
 Output from training and testing episodes goes to /data/Results.
 * **.rst:** Job scheduling results.
 | Column | Description     |
-| :---   |    :----        |
+| ------ | -----------     |
 | 1      | Job ID          | 
 | 2      | Processor count |
 | 3      | Requested time  |
@@ -68,7 +68,7 @@ Output from training and testing episodes goes to /data/Results.
 
 * **.ult:** Changes to system utilization.
 | Column | Description   |
-| :----  | :----         |
+| ------ | -----------   |
 | 1      | Time          |
 | 2      | Utilization % |
 
