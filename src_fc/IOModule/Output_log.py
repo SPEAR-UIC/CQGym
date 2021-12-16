@@ -26,12 +26,6 @@ class Output_log:
         self.sys_info.file_close()
         self.sys_info.reset(self.output_path['sys'],1)   
         
-        self.adapt_info = Log_print.Log_print(self.output_path['adapt'],0)
-        self.adapt_info.reset(self.output_path['adapt'],0)
-        self.adapt_info.file_open()
-        self.adapt_info.file_close()
-        self.adapt_info.reset(self.output_path['adapt'],1)
-        
         self.job_result = Log_print.Log_print(self.output_path['result'],0)
         self.job_result.reset(self.output_path['result'],0)
         self.job_result.file_open()
@@ -57,7 +51,6 @@ class Output_log:
                 context += str(int(sys_info['date']))
                 context += sep_sign
                 context += (str(sys_info['uti']))
-                context += sep_sign
                 self.sys_info.log_print(context,1)
             self.sys_info.file_close()
             self.sys_info_buf = []

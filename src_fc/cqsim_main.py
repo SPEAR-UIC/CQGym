@@ -162,5 +162,5 @@ def cqsim_main(para_list):
         print(".................... FCFS")
         FCFS.model_engine(module_list, module_debug,
                           job_cols, window_size, do_render)
-    module_output_log.print_reward()
+    module_output_log.print_reward(reward_seq)
      

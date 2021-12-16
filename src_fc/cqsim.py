@@ -410,7 +410,7 @@ if __name__ == "__main__":
     now = datetime.now()
     inputPara['job_trace'] = opts.job_trace
     inputPara['node_struc'] = opts.node_struc
-    inputPara['job_save'] = opts.job_save + now.strftime('%H_%M_%S')
+    inputPara['job_save'] = opts.job_save
     inputPara['node_save'] = opts.node_save
     inputPara['cluster_fraction'] = opts.cluster_fraction
     inputPara['start'] = opts.start
@@ -418,7 +418,7 @@ if __name__ == "__main__":
     inputPara['anchor'] = opts.anchor
     inputPara['read_num'] = opts.read_num
     inputPara['pre_name'] = opts.pre_name
-    inputPara['output'] = opts.output
+    inputPara['output'] = opts.output + now.strftime('%H_%M_%S')
     inputPara['debug'] = opts.debug
     inputPara['ext_fmt_j'] = opts.ext_fmt_j
     inputPara['ext_fmt_n'] = opts.ext_fmt_n

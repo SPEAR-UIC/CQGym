@@ -39,6 +39,8 @@ def model_training(env, weights_file_name=None, is_training=False, output_file_n
     if is_training and output_file_name:
         dql.save_using_model_name(output_file_name)
 
+    return dql.reward_seq
+
 def model_engine(module_list, module_debug, job_cols=0, window_size=0, sys_size=0,
                  is_training=False, weights_file=None, output_file=None, do_render=False,
                  learning_rate=1e-5, reward_discount=0.99, batch_size=10, layer_size=[]):
@@ -56,6 +58,6 @@ def model_engine(module_list, module_debug, job_cols=0, window_size=0, sys_size=
     """
     cqsim_gym = CqsimEnv(module_list, module_debug,
                          job_cols, window_size, do_render)
-    model_training(cqsim_gym, window_size=window_size, is_training=is_training,
-                   weights_file_name=weights_file, output_file_name=output_file, sys_size=sys_size, learning_rate=learning_rate,
-                   gamma=reward_discount, batch_size=batch_size, layer_size=layer_size)
+    return model_training(cqsim_gym, window_size=window_size, is_training=is_training,
+                weights_file_name=weights_file, output_file_name=output_file, sys_size=sys_size, learning_rate=learning_rate,
+                gamma=reward_discount, batch_size=batch_size, layer_size=layer_size)
