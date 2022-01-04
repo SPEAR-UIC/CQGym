@@ -156,7 +156,7 @@ def cqsim_main(para_list):
         reward_seq = dql_trainer.model_engine(module_list, module_debug, job_cols, window_size, module_node_struc.tot,
                                  is_training, input_weight_file, output_weight_file, do_render, learning_rate, reward_discount, batch_size, layer_size)
     elif para_list['rl_alg'] == 'PG':
-        reward_seq = pg.model_engine(module_list, module_debug, job_cols, window_size, module_node_struc.tot,
+        reward_seq = pg_trainer.model_engine(module_list, module_debug, job_cols, window_size, module_node_struc.tot,
                                 is_training, input_weight_file, output_weight_file, do_render, learning_rate, reward_discount, batch_size, layer_size)
     else:  # FCFS
         print(".................... FCFS")
