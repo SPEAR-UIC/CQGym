@@ -139,6 +139,6 @@ class GymState:
 
         tmp_reward += selected_job_priority * w3
 
-        tmp_reward = selected_job_requested_nodes / max_job_size_in_que
+       # tmp_reward = selected_job_requested_nodes / max_job_size_in_que
 
         return tmp_reward
